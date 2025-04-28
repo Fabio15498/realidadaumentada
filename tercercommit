@@ -1,0 +1,66 @@
+// Registrar el componente de la curva
+AFRAME.registerComponent("sine-graph", {
+  schema: {
+    functionType: { type: "string", default: "sin" }
+  },
+
+  init: function () {
+    this.createGraph();
+  },
+
+  createGraph: function () {
+    const curve = new THREE.Curve();
+    curve.getPoint = (t) => {
+      const x = t * 10 - 5;
+      let y;
+      if (this.data.functionType === "sin") {
+        y = Math.sin(x);
+      } else if (this.data.functionType === "cos") {
+        y = Math.cos(x);
+      } else if (this.data.functionType === "tan") {
+        y = Math.tan(x) * 0.2; // Reducimos tangente para que no explote
+      }
+      return new THREE.Vector3(x, y, 0);
+    };
+
+    const geometry = new THREE.TubeGeometry(curve, 100, 0.05, 8, false);
+    const material = new THREE.MeshNormalMaterial();
+    const mesh = new THREE.Mesh(geometry, material);
+
+    this.el.setObject3D("mesh", mesh);
+  },
+
+  update: function () {
+    this.el.removeObject3D("mesh");
+    this.createGraph();
+  }
+});
+
+// Función para rotar
+let rotation = 0;
+function rotateGraph() {
+  const curve = document.querySelector("#sine-curve");
+  rotation += 15;
+  curve.object3D.rotation.y = THREE.MathUtils.degToRad(rotation);
+}
+
+// Función para cambiar tamaño
+let scale = 1;
+function resizeGraph() {
+  const curve = document.querySelector("#sine-curve");
+  scale = scale === 1 ? 2 : 1;
+  curve.setAttribute("scale", { x: scale, y: scale, z: scale });
+}
+
+// Función para cambiar trigonometría
+let currentFunction = "sin";
+function changeFunction() {
+  const curve = document.querySelector("#sine-curve");
+  currentFunction =
+    currentFunction === "sin"
+      ? "cos"
+      : currentFunction === "cos"
+      ? "tan"
+      : "sin";
+  curve.setAttribute("sine-graph", "functionType", currentFunction);
+}
